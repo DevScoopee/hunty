@@ -3,11 +3,22 @@ import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Stack, type ErrorBoundaryProps, useRouter } from 'expo-router';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
+import * as Notifications from 'expo-notifications';
 import { hideSplashScreen } from '@utils/splashScreenManager';
 import { useTheme } from '@providers/ThemeProvider';
 import { ThemedCustomText, ThemedButton } from '@components/themed';
 import { StackHeader } from '@components/navigation/StackHeader';
 import { Sentry } from '@config/sentry';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 export const unstable_settings = {
   initialRouteName: '(tabs)',
@@ -51,6 +62,10 @@ export default function RootLayout() {
       hideSplashScreen();
     }
   }, [loaded, error]);
+
+  useEffect(() => {
+    Notifications.requestPermissionsAsync();
+  }, []);
 
   useEffect(() => {
     const backAction = () => {

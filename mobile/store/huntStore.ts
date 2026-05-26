@@ -5,6 +5,7 @@
 
 import type { HuntStatus, StoredHunt, Clue } from "@lib/types";
 import * as SecureStore from "expo-secure-store";
+import { scheduleHuntExpiryNotification } from "@utils/huntNotifications";
 
 const STORAGE_KEY = "hunty_hunts";
 const CLUES_KEY = "hunty_clues";
@@ -209,4 +210,15 @@ export function getFeaturedHunts(limit = 3): StoredHunt[] {
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map((s) => s.hunt);
+}
+
+/**
+ * Record that the current player has joined a hunt and schedule a local
+ * notification 1 hour before the hunt expires.
+ */
+export async function joinHunt(huntId: number): Promise<void> {
+  const hunts = await readHunts();
+  const hunt = hunts.find((h) => h.id === huntId);
+  if (!hunt || !hunt.endTime) return;
+  await scheduleHuntExpiryNotification(huntId, hunt.title, hunt.endTime);
 }

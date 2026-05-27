@@ -61,6 +61,7 @@ describe("PlayGame", () => {
     )
 
     expect(document.querySelector(".animate-pulse")).toBeInTheDocument()
+    expect(document.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0)
 
     await waitFor(() => {
       expect(screen.getByText("Network Error")).toBeInTheDocument()

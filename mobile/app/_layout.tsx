@@ -1,12 +1,16 @@
+import { useCallback, useEffect } from 'react';
+import { BackHandler, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useEffect } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { Stack, type ErrorBoundaryProps, useRouter } from 'expo-router';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import { hideSplashScreen, initializeSplashScreen } from '@utils/splashScreenManager';
 import { ThemeProvider, useTheme } from '@providers/ThemeProvider';
 import ReactQueryProvider from '@providers/ReactQueryProvider';
 import { ThemedCustomText, ThemedButton } from '@components/themed';
+import { useBackHandler } from '../hooks/useBackHandler';
+import { MemoryDiagnosticsOverlay } from '../components/MemoryDiagnosticsOverlay';
 import { StackHeader } from '@components/navigation/StackHeader';
 import { Sentry, initializeSentry } from '@config/sentry';
 
@@ -36,6 +40,22 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'right', 'bottom', 'left']}>
+      <View style={styles.errorContainer}>
+        <ThemedCustomText variant="h2" style={styles.errorTitle}>
+          Something went wrong
+        </ThemedCustomText>
+        <ThemedCustomText variant="body" style={styles.errorMessage}>
+          {error.message || 'Unexpected navigation error.'}
+        </ThemedCustomText>
+        <ThemedButton
+          text="Try again"
+          onPress={retry}
+          variant="primary"
+          size="md"
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -70,8 +90,41 @@ function RootLayoutNav() {
   }, [router]);
 
   if (!loaded && !error) return null;
+  const backAction = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return true;
+    }
+
+    return false;
+  }, [router]);
+
+  useBackHandler(backAction);
+
+  if (!loaded && !error) {
+    return null;
+  }
 
   return (
+    <SafeAreaView 
+      style={[styles.safeArea, { backgroundColor: colors.background }]} 
+      edges={['top', 'right', 'bottom', 'left']}
+    >
+      <Stack
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: colors.primary,
+          },
+          headerTintColor: '#ffffff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+            color: '#ffffff',
+          },
+          contentStyle: { backgroundColor: colors.background },
+          statusBarStyle: isDark ? 'light' : 'dark',
+        }}
+      />
+    </SafeAreaView>
     <SafeAreaProvider>
       <SafeAreaView
         style={[styles.safeArea, { backgroundColor: colors.background }]}
@@ -84,6 +137,8 @@ function RootLayoutNav() {
             contentStyle: { backgroundColor: colors.background },
             statusBarStyle: isDark ? 'light' : 'dark',
           }}
+        />
+        <MemoryDiagnosticsOverlay />
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="hunt/[id]" options={{ title: 'Hunt Details' }} />

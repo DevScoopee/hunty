@@ -24,16 +24,16 @@
 
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hunty.app",
+      "bundleIdentifier": "io.hunty.mobile",
+      "buildNumber": "1",
       "associatedDomains": [
         "applinks:hunty.io"
       ]
-      "bundleIdentifier": "io.hunty.mobile",
-      "buildNumber": "1"
     },
 
     "android": {
-      "package": "com.hunty.app",
+      "package": "io.hunty.mobile",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -54,8 +54,6 @@
           ]
         }
       ]
-      "package": "io.hunty.mobile",
-      "versionCode": 1
     },
 
     "web": {
@@ -71,8 +69,6 @@
           "locationWhenInUsePermission": "Hunty needs your location to show nearby clue zones on the map."
         }
       ]
-    ]
-      "expo-router"
     ],
     "extra": {
       "eas": {

@@ -7,12 +7,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { hideSplashScreen, initializeSplashScreen } from '@utils/splashScreenManager';
 import { ThemeProvider, useTheme } from '@providers/ThemeProvider';
 import ReactQueryProvider from '@providers/ReactQueryProvider';
+import { ToastProvider, useToast } from '@providers/ToastProvider';
 import { ThemedButton, ThemedCustomText } from '@components/themed';
 import { useFonts } from '@app/hooks/useFonts';
 import { useBackHandler } from '@hooks/useBackHandler';
 import { MemoryDiagnosticsOverlay } from '@components/MemoryDiagnosticsOverlay';
 import { StackHeader } from '@components/navigation/StackHeader';
 import { Sentry, initializeSentry } from '@config/sentry';
+import { classifyWalletTxError } from '@lib/walletErrors';
 
 initializeSplashScreen();
 initializeSentry();
@@ -46,7 +48,9 @@ export default function RootLayout() {
     <ReactQueryProvider>
       <ThemeProvider>
         <SafeAreaProvider>
-          <RootLayoutNav />
+          <ToastProvider>
+            <RootLayoutNav />
+          </ToastProvider>
         </SafeAreaProvider>
       </ThemeProvider>
     </ReactQueryProvider>
@@ -55,6 +59,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const router = useRouter();
+  const { showToast } = useToast();
   const { colors, isDark } = useTheme();
   const [fontsLoaded, fontError] = useFonts();
   const [onboardingResolved, setOnboardingResolved] = useState(false);
@@ -103,7 +108,18 @@ function RootLayoutNav() {
 
   useEffect(() => {
     const routeFromUrl = (url: string) => {
-      const { path } = Linking.parse(url);
+      const { path, queryParams } = Linking.parse(url);
+
+      const status = String(queryParams?.status ?? '').toLowerCase();
+      const rawError = queryParams?.error ?? queryParams?.error_description ?? queryParams?.message;
+
+      if (status === 'error' || rawError) {
+        const parsed = classifyWalletTxError(rawError);
+        showToast({
+          message: parsed.message,
+          type: parsed.kind === 'unknown' ? 'error' : 'warning',
+        });
+      }
 
       if (path && path.length > 0) {
         const normalized = path.startsWith('/') ? path : `/${path}`;
@@ -129,7 +145,7 @@ function RootLayoutNav() {
     });
 
     return () => subscription.remove();
-  }, [router]);
+  }, [router, showToast]);
 
   if ((!fontsLoaded && !fontError) || !onboardingResolved) {
     return null;

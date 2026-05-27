@@ -8,27 +8,10 @@
       "developmentClient": true,
       "distribution": "internal",
       "channel": "development",
-      "env": {
-        "APP_ENV": "development"
-      },
-      "android": {
-        "gradleCommand": ":app:assembleDebug",
-        "buildType": "apk"
-      },
       "ios": {
-        "buildConfiguration": "Debug",
-        "simulator": false
-      }
-    },
-    "preview": {
-      "developmentClient": false,
-      "distribution": "internal",
-      "channel": "preview",
-      "env": {
-        "APP_ENV": "preview"
+        "simulator": true
       },
       "android": {
-        "gradleCommand": ":app:assembleRelease",
         "buildType": "apk"
       },
       "ios": {
@@ -65,6 +48,15 @@
         "env": {
           "APP_VARIANT": "preview"
         }
+      "env": {
+        "APP_VARIANT": "development"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview",
+      "ios": {
+        "simulator": false
       },
       "production": {
         "distribution": "store",
@@ -108,6 +100,31 @@
       "appleTeamId": "${EXPO_APPLE_TEAM_ID}",
       "metadataPath": "./store.config.json",
       "language": "en-US"
+    "production": {
+      "distribution": "store",
+      "channel": "production",
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "APP_VARIANT": "production"
+      }
+    }
+  },
+  "submit": {
+    "preview": {
+      "ios": {
+        "appleId": "${EXPO_APPLE_ID}",
+        "ascAppId": "${EXPO_ASC_APP_ID}",
+        "appleTeamId": "${EXPO_APPLE_TEAM_ID}",
+        "metadataPath": "./store.config.json",
+        "language": "en-US"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./store/google-play-service-account.json",
+        "track": "internal"
+      }
     },
     "android": {
       "serviceAccountKeyPath": "./store/google-play-service-account.json",

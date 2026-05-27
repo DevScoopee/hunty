@@ -2,64 +2,60 @@
  * Shared hunt list for dashboard (creator hunts) and Game Arcade (active hunts).
  * Persisted in SecureStore for mobile, with AsyncStorage offline cache for clues.
  */
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+import type { Clue, HuntStatus, StoredHunt } from '@lib/types';
 
-import type { HuntStatus, StoredHunt, Clue } from "@lib/types";
-import * as SecureStore from "expo-secure-store";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+const HUNTS_KEY = 'hunty_hunts';
+const CLUES_KEY = 'hunty_clues';
 
 const STORAGE_KEY = "hunty_hunts";
 const CLUES_KEY = "hunty_clues";
 
 const NOW_SECONDS = Math.floor(Date.now() / 1000);
+const now = Math.floor(Date.now() / 1000);
 
 const SEED_HUNTS: StoredHunt[] = [
   {
     id: 1,
-    title: "City Secrets",
-    description: "Race across town to uncover hidden murals and landmarks.",
+    title: 'City Secrets',
+    description: 'Race across town to uncover hidden murals and landmarks with your squad.',
     cluesCount: 5,
-    status: "Active",
-    rewardType: "XLM",
-    startTime: NOW_SECONDS - 86400,
-    endTime: NOW_SECONDS + 7 * 86400,
-    coverImageCid: "bafybeigdyrzt5sfp7udm7hmhd3km4gq6v2y24sqqew2qnp4o3k4xcoq2a",
+    status: 'Active',
+    rewardType: 'Both',
+    startTime: now - 86_400,
+    endTime: now + 5 * 86_400,
+    coverImageCid: 'bafybeigdyrzt5sfp7udm7hmhd3km4gq6v2y24sqqew2qnp4o3k4xcoq2a',
   },
   {
     id: 2,
-    title: "Campus Quest",
-    description: "Solve riddles scattered around campus before the timer ends.",
+    title: 'Campus Quest',
+    description: 'Decode hidden clues across campus and unlock a limited student reward.',
     cluesCount: 7,
-    status: "Active",
-    rewardType: "NFT",
-    startTime: NOW_SECONDS - 2 * 86400,
-    endTime: NOW_SECONDS + 3 * 86400,
-    coverImageCid: "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG",
+    status: 'Active',
+    rewardType: 'NFT',
+    startTime: now - 2 * 86_400,
+    endTime: now + 3 * 86_400,
+    coverImageCid: 'QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
   },
   {
     id: 3,
-    title: "Office Onboarding Hunt",
-    description: "A playful intro game for new teammates around the office.",
+    title: 'Soroban Sprint',
+    description: 'A fast downtown hunt with a pure XLM prize pool.',
     cluesCount: 4,
-    status: "Completed",
-    rewardType: "Both",
-    startTime: NOW_SECONDS - 10 * 86400,
-    endTime: NOW_SECONDS - 5 * 86400,
+    status: 'Active',
+    rewardType: 'XLM',
+    startTime: now - 3 * 86_400,
+    endTime: now + 2 * 86_400,
   },
   {
     id: 4,
-    title: "Summer Treasure Hunt",
-    description: "Find hidden clues in the park.",
+    title: 'Museum Mystery',
+    description: 'A private curator preview hunt awaiting activation.',
     cluesCount: 3,
-    status: "Draft",
-    rewardType: "XLM",
-  },
-  {
-    id: 5,
-    title: "Museum Mystery",
-    description: "Discover art and history through clues.",
-    cluesCount: 0,
-    status: "Draft",
-    rewardType: "NFT",
+    status: 'Draft',
+    rewardType: 'NFT',
+    is_private: true,
   },
 ];
 
@@ -154,16 +150,51 @@ const SEED_CLUES: Clue[] = [
 ];
 
 // ─── Storage helpers ──────────────────────────────────────────────────────────
+  { id: 1, huntId: 1, question: 'Which mural wraps around the east gate?', answer: 'spiral mural', points: 10, hint: 'Look for painted stairs.' },
+  { id: 2, huntId: 1, question: 'Which statue holds a lantern in the north plaza?', answer: 'lantern statue', points: 10, hint: 'It glows after sunset.' },
+  { id: 3, huntId: 1, question: 'Name the cafe beside the old clock tower.', answer: 'clocktower cafe', points: 12 },
+  { id: 4, huntId: 1, question: 'What color is the hidden service door by the racks?', answer: 'blue', points: 8 },
+  { id: 5, huntId: 1, question: 'Which alley hides the painted fox mural?', answer: 'fox alley', points: 15 },
+  { id: 6, huntId: 2, question: 'Which building has the golden dome?', answer: 'golden dome', points: 8, hint: 'Visible from the main quad.' },
+  { id: 7, huntId: 2, question: 'Which library wing stays open all night?', answer: 'north wing', points: 8 },
+  { id: 8, huntId: 2, question: 'What landmark sits beside the rose garden?', answer: 'sculpture fountain', points: 8 },
+  { id: 9, huntId: 2, question: 'What is the name of the student center cafe?', answer: 'campus brew', points: 8 },
+  { id: 10, huntId: 2, question: 'Which gate faces the river trail?', answer: 'river gate', points: 8 },
+  { id: 11, huntId: 2, question: 'Which building holds the compass mural?', answer: 'compass hall', points: 8 },
+  { id: 12, huntId: 2, question: 'What bench sits under the oldest oak?', answer: 'oak bench', points: 8 },
+  { id: 13, huntId: 3, question: 'Which neon sign marks the coder alley entrance?', answer: 'byte lane', points: 10 },
+  { id: 14, huntId: 3, question: 'What phrase is etched into the cyber archway?', answer: 'move fast', points: 10 },
+  { id: 15, huntId: 3, question: 'Which rooftop hosts the final beacon?', answer: 'sky deck', points: 20 },
+  { id: 16, huntId: 3, question: 'What is the vault passphrase painted on the drone pad?', answer: 'stellar', points: 30 },
+];
+
+async function readJson<T>(key: string, fallback: T): Promise<T> {
+  try {
+    const value = await SecureStore.getItemAsync(key);
+    if (!value) {
+      return fallback;
+    }
+
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+async function writeJson<T>(key: string, value: T): Promise<void> {
+  try {
+    await SecureStore.setItemAsync(key, JSON.stringify(value));
+  } catch {
+    // ignore persistence errors in demo mode
+  }
+}
 
 async function readHunts(): Promise<StoredHunt[]> {
-  try {
-    const raw = await SecureStore.getItemAsync(STORAGE_KEY);
-    if (!raw) return [...SEED_HUNTS];
-    const parsed = JSON.parse(raw) as StoredHunt[];
-    return Array.isArray(parsed) ? parsed : [...SEED_HUNTS];
-  } catch {
-    return [...SEED_HUNTS];
-  }
+  return readJson(HUNTS_KEY, SEED_HUNTS);
+}
+
+async function readClues(): Promise<Clue[]> {
+  return readJson(CLUES_KEY, SEED_CLUES);
 }
 
 async function writeHunts(hunts: StoredHunt[]): Promise<void> {
@@ -202,6 +233,18 @@ export async function cacheJoinedHuntClues(
   } catch (error) {
     if (__DEV__)
       console.error(`Failed to cache clues for hunt ${huntId}:`, error);
+  await writeJson(HUNTS_KEY, hunts);
+}
+
+async function writeClues(clues: Clue[]): Promise<void> {
+  await writeJson(CLUES_KEY, clues);
+}
+
+export async function cacheJoinedHuntClues(huntId: number, clues: Clue[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(`hunty_clues_hunt_${huntId}`, JSON.stringify(clues));
+  } catch {
+    // ignore
   }
 }
 
@@ -211,6 +254,8 @@ export async function getOfflineCachedClues(huntId: number): Promise<Clue[]> {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as Clue[];
     return Array.isArray(parsed) ? parsed : [];
+    const value = await AsyncStorage.getItem(`hunty_clues_hunt_${huntId}`);
+    return value ? (JSON.parse(value) as Clue[]) : [];
   } catch {
     return [];
   }
@@ -220,6 +265,14 @@ export async function getOfflineCachedClues(huntId: number): Promise<Clue[]> {
 
 export async function getAllHunts(): Promise<StoredHunt[]> {
   return (await readHunts()).filter((h) => !h.is_private);
+export async function getActiveHuntsForFeed(): Promise<StoredHunt[]> {
+  const hunts = await readHunts();
+  return hunts.filter((hunt) => hunt.status === 'Active' && !hunt.is_private);
+}
+
+export async function getAllHunts(): Promise<StoredHunt[]> {
+  const hunts = await readHunts();
+  return hunts.filter((hunt) => !hunt.is_private);
 }
 
 export async function getAllHuntsIncludingPrivate(): Promise<StoredHunt[]> {
@@ -276,11 +329,30 @@ export async function getFeaturedHunts(limit = 3): Promise<StoredHunt[]> {
 
 // ─── Hunt mutations ───────────────────────────────────────────────────────────
 
+export async function getHuntById(id: number): Promise<StoredHunt | undefined> {
+  const hunts = await readHunts();
+  return hunts.find((hunt) => hunt.id === id);
+}
+
+export async function getHunt(id: string): Promise<StoredHunt | undefined> {
+  return getHuntById(Number(id));
+}
+
+export async function getHuntClues(huntId: number): Promise<Clue[]> {
+  const clues = (await readClues()).filter((clue) => clue.huntId === huntId);
+  if (clues.length > 0) {
+    await cacheJoinedHuntClues(huntId, clues);
+    return clues;
+  }
+
+  return getOfflineCachedClues(huntId);
+}
+
 export async function addHunt(hunt: StoredHunt): Promise<void> {
   const hunts = await readHunts();
-  if (hunts.some((h) => h.id === hunt.id)) return;
-  await writeHunts([...hunts, hunt]);
-}
+  if (hunts.some((existingHunt) => existingHunt.id === hunt.id)) {
+    return;
+  }
 
 export async function updateHuntStatus(
   huntId: number,
@@ -339,4 +411,63 @@ export async function saveClueLocally(clue: Omit<Clue, "id">): Promise<void> {
       updatedClues.filter((c) => c.huntId === clue.huntId),
     ),
   ]);
+  await writeHunts([...hunts, hunt]);
+}
+
+export async function saveClueLocally(clue: Omit<Clue, 'id'>): Promise<void> {
+  const clues = await readClues();
+  const nextId = clues.length === 0 ? 1 : Math.max(...clues.map((item) => item.id)) + 1;
+  const savedClue: Clue = { ...clue, id: nextId };
+
+  await writeClues([...clues, savedClue]);
+  await cacheJoinedHuntClues(clue.huntId, [...clues.filter((item) => item.huntId === clue.huntId), savedClue]);
+
+  const hunts = await readHunts();
+  const updatedHunts = hunts.map((hunt) =>
+    hunt.id === clue.huntId ? { ...hunt, cluesCount: hunt.cluesCount + 1 } : hunt,
+  );
+  await writeHunts(updatedHunts);
+}
+
+export async function updateHuntStatus(huntId: number, status: HuntStatus): Promise<void> {
+  const hunts = await readHunts();
+  await writeHunts(hunts.map((hunt) => (hunt.id === huntId ? { ...hunt, status } : hunt)));
+}
+
+export async function archiveHunts(ids: number[]): Promise<void> {
+  const hunts = await readHunts();
+  await writeHunts(
+    hunts.map((hunt) =>
+      ids.includes(hunt.id) ? { ...hunt, status: 'Cancelled' as HuntStatus } : hunt,
+    ),
+  );
+}
+
+export async function deleteHunts(ids: number[]): Promise<void> {
+  const hunts = await readHunts();
+  const clues = await readClues();
+
+  await writeHunts(hunts.filter((hunt) => !ids.includes(hunt.id)));
+  await writeClues(clues.filter((clue) => !ids.includes(clue.huntId)));
+
+  await Promise.all(
+    ids.map(async (id) => {
+      try {
+        await AsyncStorage.removeItem(`hunty_clues_hunt_${id}`);
+      } catch {
+        // ignore
+      }
+    }),
+  );
+}
+
+export async function getFeaturedHunts(limit = 3): Promise<StoredHunt[]> {
+  const activeHunts = await getActiveHuntsForFeed();
+  return [...activeHunts]
+    .sort((left, right) => {
+      const leftEnds = left.endTime ?? Number.MAX_SAFE_INTEGER;
+      const rightEnds = right.endTime ?? Number.MAX_SAFE_INTEGER;
+      return leftEnds - rightEnds || right.cluesCount - left.cluesCount;
+    })
+    .slice(0, limit);
 }

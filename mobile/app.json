@@ -7,21 +7,12 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-
     "scheme": "hunty",
-
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-
-    "splashScreen": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "io.hunty.mobile",
@@ -30,7 +21,6 @@
         "applinks:hunty.io"
       ]
     },
-
     "android": {
       "package": "io.hunty.mobile",
       "versionCode": 1,
@@ -44,7 +34,10 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "category": ["BROWSABLE", "DEFAULT"],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ],
           "data": [
             {
               "scheme": "https",
@@ -55,11 +48,9 @@
         }
       ]
     },
-
     "web": {
       "favicon": "./assets/favicon.png"
     },
-
     "plugins": [
       "expo-router",
       [

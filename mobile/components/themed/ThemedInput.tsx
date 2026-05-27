@@ -9,6 +9,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { useTheme } from '@providers/ThemeProvider';
+import { useTheme } from '../../providers/ThemeProvider';
 import { normalizeFont, MAX_FONT_SCALE } from '../../config/fontScaling';
 import { ThemedCustomText } from './ThemedCustomText';
 

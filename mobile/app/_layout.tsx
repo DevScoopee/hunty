@@ -1,3 +1,4 @@
+import '../global.css';
 import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Stack, type ErrorBoundaryProps, useRouter } from 'expo-router';
@@ -168,7 +169,9 @@ function RootLayoutNav() {
   }, [router, setNetwork, showToast]);
 
   if ((!fontsLoaded && !fontError) || !onboardingResolved) {
-    return null;
+    // Render an opaque background instead of null to prevent white flash
+    // while fonts load and onboarding state resolves.
+    return <View style={[styles.safeArea, { backgroundColor: colors.background }]} />;
   }
 
   return (
@@ -182,15 +185,16 @@ function RootLayoutNav() {
           headerTintColor: '#ffffff',
           contentStyle: { backgroundColor: colors.background },
           statusBarStyle: isDark ? 'light' : 'dark',
+          animation: 'none',
         }}
       >
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="hunt/[id]" options={{ title: 'Hunt Details' }} />
-        <Stack.Screen name="network/switch" options={{ title: 'Switch Network' }} />
-        <Stack.Screen name="transaction/pending" options={{ title: 'Transaction Pending' }} />
-        <Stack.Screen name="details" options={{ title: 'Details' }} />
-        <Stack.Screen name="nested" options={{ title: 'Nested' }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'none' }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'none' }} />
+        <Stack.Screen name="hunt/[id]" options={{ title: 'Hunt Details', animation: 'none' }} />
+        <Stack.Screen name="network/switch" options={{ title: 'Switch Network', animation: 'none' }} />
+        <Stack.Screen name="transaction/pending" options={{ title: 'Transaction Pending', animation: 'none' }} />
+        <Stack.Screen name="details" options={{ title: 'Details', animation: 'none' }} />
+        <Stack.Screen name="nested" options={{ title: 'Nested', animation: 'none' }} />
       </Stack>
       <MemoryDiagnosticsOverlay />
     </SafeAreaView>

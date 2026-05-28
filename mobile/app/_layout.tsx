@@ -1,3 +1,4 @@
+import '../global.css';
 import { useCallback, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import { Stack, type ErrorBoundaryProps, useRouter } from "expo-router";

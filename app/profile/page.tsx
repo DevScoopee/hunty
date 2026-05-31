@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { useFreighterWallet, shortenAddress } from "@/hooks/useFreighterWallet"
 import { NftGallery } from "@/components/NftGallery"
+import { BadgeWall } from "@/components/BadgeWall"
 import type { NftRewardDetail } from "@/components/NftDetailModal"
 
 type HuntProgressStatus = "Completed" | "In-Progress"
@@ -288,6 +289,10 @@ export default function UserProfilePage() {
               </div>
               
               <NftGallery nfts={nftRewards} />
+            </section>
+
+            <section aria-label="Achievements" className="mt-8">
+              <BadgeWall playerAddress={publicKey} />
             </section>
 
             <section aria-label="Hunt history" className="mt-10 space-y-8">

@@ -54,6 +54,7 @@ const TX_CODE_MAP: Record<string, { code: StellarErrorCode; message: string }> =
     code: "INSUFFICIENT_FEE",
     message: "Insufficient fee supplied for transaction. Increase the fee or add more XLM to your account.",
   },
+  tx_insufficient_balance: {
     code: "INSUFFICIENT_BALANCE",
     message: "Insufficient XLM balance to cover transaction fees. Top up your account and try again.",
   },

@@ -5,9 +5,9 @@ import { normalizeNetworkError, AnswerIncorrectError } from "./errors"
 import { SOROBAN_RPC_URL, NETWORK_PASSPHRASE } from "./config"
 import { getActiveWalletAdapter } from "@/lib/walletAdapter"
 
-import type { ClueInfo, HuntInfo, CreateHuntResult, SubmitAnswerResult, ActivateHuntResult, AddClueResult, LeaderboardEntry, FastestPlayerEntry } from "@/lib/types"
+import type { ClueInfo, HuntInfo, CreateHuntResult, SubmitAnswerResult, ActivateHuntResult, AddClueResult, ExtendHuntResult, LeaderboardEntry, FastestPlayerEntry } from "@/lib/types"
 
-export type { ClueInfo, HuntInfo, CreateHuntResult, SubmitAnswerResult, ActivateHuntResult, AddClueResult, LeaderboardEntry, FastestPlayerEntry }
+export type { ClueInfo, HuntInfo, CreateHuntResult, SubmitAnswerResult, ActivateHuntResult, AddClueResult, ExtendHuntResult, LeaderboardEntry, FastestPlayerEntry }
 
 // AnswerIncorrectError is re-exported from the central errors module for
 // backwards-compatible imports (e.g. `import { AnswerIncorrectError } from "@/lib/contracts/hunt"`).
@@ -166,6 +166,46 @@ export async function addClue(
 }
 
 /**
+ * Calls the smart contract's extend_end_time(hunt_id: u64, new_end_time: u64) to extend a hunt's duration.
+ * Requires wallet and Soroban RPC.
+ */
+export async function extendEndTime(
+  huntId: number,
+  newEndTime: number
+): Promise<ExtendHuntResult> {
+  if (typeof window === "undefined") throw new Error("Browser environment required")
+
+  const server = new Server(SOROBAN_RPC_URL)
+  const wallet = getActiveWalletAdapter()
+  const publicKey = await wallet.getPublicKey()
+
+  const account = (await withSorobanRpcRetry(() => server.getAccount(publicKey))) as Account
+  const payload = JSON.stringify({
+    action: "extend_end_time",
+    hunt_id: huntId,
+    new_end_time: newEndTime,
+  })
+  const key = `extend_end_time:${Date.now()}`
+  const op = Operation.manageData({ name: key, value: payload })
+
+  const tx = new TransactionBuilder(account, {
+    fee: "100",
+    networkPassphrase: NETWORK_PASSPHRASE,
+  })
+    .addOperation(op)
+    .setTimeout(180)
+    .build()
+
+  const signedXdr = await wallet.signTransaction(tx.toXDR())
+
+  const res = (await withSorobanRpcRetry(() => server.submitTransaction(signedXdr))) as {
+    hash?: string
+  }
+  if (!res?.hash) throw new Error("Transaction submission failed")
+  return { txHash: res.hash, newEndTime }
+}
+
+/**
  * Retrieves the hunt leaderboard. 
  * Attempts to fetch "live" data from the contract account's data attributes 
  * (leveraging the manageData pattern) with a robust mock data fallback.
@@ -229,27 +269,18 @@ export async function get_hunt_fastest_players(huntId: number): Promise<FastestP
 
         if (rows.length > 0) {
           return rows
-            .map((entry): FastestPlayerEntry | null => {
-              if (typeof entry.address !== "string") {
-                return null
-              }
-
-              return {
-                address: entry.address,
-                name: entry.name,
-                points: typeof entry.points === "number" ? entry.points : undefined,
-                completionTimeSeconds:
-                  typeof entry.completion_time_seconds === "number"
-                    ? entry.completion_time_seconds
-                    : typeof entry.duration_seconds === "number"
-                    ? entry.duration_seconds
-                    : Math.floor((Number(entry.completion_time_ms ?? entry.duration_ms ?? 0) / 1000) || 0),
-              }
-            })
-            .filter(
-              (entry): entry is FastestPlayerEntry =>
-                entry !== null && typeof entry.address === "string" && entry.completionTimeSeconds >= 0
-            )
+            .map((entry) => ({
+              address: entry.address,
+              name: entry.name,
+              points: typeof entry.points === "number" ? entry.points : undefined,
+              completionTimeSeconds:
+                typeof entry.completion_time_seconds === "number"
+                  ? entry.completion_time_seconds
+                  : typeof entry.duration_seconds === "number"
+                  ? entry.duration_seconds
+                  : Math.floor((Number(entry.completion_time_ms ?? entry.duration_ms ?? 0) / 1000) || 0),
+            }))
+            .filter((entry) => entry.address && entry.completionTimeSeconds >= 0)
         }
       }
     } catch (error) {
@@ -337,7 +368,7 @@ export async function pollTransaction(txHash: string): Promise<boolean> {
   }
 
   const server = new Server(SOROBAN_RPC_URL);
-  const maybeServer = server as typeof server & {
+  const maybeServer = server as Server & {
     getTransaction?: (hash: string) => Promise<{ status: string }>
   }
   

@@ -18,26 +18,25 @@ type HapticsModule = {
 }
 
 // Lazy-load expo-haptics so web/root test environments can safely no-op.
-let cachedHaptics: HapticsModule | null | undefined
+let cachedHapticsPromise: Promise<HapticsModule | null> | null = null
 
-function loadHapticsModule(): HapticsModule | null {
-  if (cachedHaptics !== undefined) return cachedHaptics
+async function loadHapticsModule(): Promise<HapticsModule | null> {
+  if (cachedHapticsPromise) return cachedHapticsPromise
 
-  try {
-    cachedHaptics =
-      typeof require === "function"
-        ? (require("expo-haptics") as HapticsModule)
-        : null
-  } catch (error) {
-    console.warn("Failed to load expo-haptics:", error)
-    cachedHaptics = null
-  }
+  const expoHapticsModule = "expo-haptics"
 
-  return cachedHaptics
+  cachedHapticsPromise = import(/* @vite-ignore */ expoHapticsModule)
+    .then((module) => module as HapticsModule)
+    .catch((error: unknown) => {
+      console.warn("Failed to load expo-haptics:", error)
+      return null
+    })
+
+  return cachedHapticsPromise
 }
 
 export async function triggerNotification(type: NotificationType): Promise<void> {
-  const Haptics = loadHapticsModule()
+  const Haptics = await loadHapticsModule()
   if (!Haptics) return
 
   try {
@@ -63,7 +62,7 @@ export async function triggerNotification(type: NotificationType): Promise<void>
 }
 
 export async function triggerImpact(style: ImpactStyle): Promise<void> {
-  const Haptics = loadHapticsModule()
+  const Haptics = await loadHapticsModule()
   if (!Haptics) return
 
   try {
@@ -89,7 +88,7 @@ export async function triggerImpact(style: ImpactStyle): Promise<void> {
 }
 
 export async function triggerSelection(): Promise<void> {
-  const Haptics = loadHapticsModule()
+  const Haptics = await loadHapticsModule()
   if (!Haptics) return
 
   try {

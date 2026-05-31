@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Loader2, Printer } from "lucide-react";
 import picture from "@/public/static-images/image1.png";
 import { Skeleton } from "@/components/ui/skeleton";
+import sanitizeHtml from "@/lib/sanitizeHtml";
 import { submitAnswer, AnswerIncorrectError, pollTransaction } from "@/lib/contracts/hunt";
 import { resolveImageSrc, GATEWAY_COUNT } from "@/lib/ipfs";
 import type { HuntCard as Hunt } from "@/lib/types";
@@ -195,9 +196,7 @@ export const HuntCards: React.FC<HuntCardsProps> = ({
         <h3 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 line-clamp-2 print:text-3xl print:mb-4">
           {hunt.title || "Untitled Hunt"}
         </h3>
-        <p className="text-xs sm:text-sm opacity-90 mb-4 sm:mb-6 line-clamp-3 print:text-lg print:opacity-100 print:mb-8">
-          {hunt.description || "No description provided."}
-        </p>
+        <p className="text-xs sm:text-sm opacity-90 mb-4 sm:mb-6 line-clamp-3 print:text-lg print:opacity-100 print:mb-8" dangerouslySetInnerHTML={{ __html: sanitizeHtml(hunt.description || "No description provided.") }} />
         <div className="flex justify-center">
           {hunt.link || hunt.image ? (
             <Image
@@ -231,10 +230,10 @@ export const HuntCards: React.FC<HuntCardsProps> = ({
             >
               Reveal Hint (-{hunt.hintCost || 0} pts)
             </Button>
-          ) : (
+              ) : (
             <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 p-2 sm:p-3 rounded-lg sm:rounded-xl text-xs sm:text-sm border border-blue-100 dark:border-blue-900/30">
               <span className="font-semibold text-blue-900 dark:text-blue-200 mr-2">Hint:</span>
-              {hunt.hint}
+              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(hunt.hint || "") }} />
             </div>
           )}
         </div>

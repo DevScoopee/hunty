@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { getAllHunts } from "@/lib/huntStore"
-import { Trophy, ArrowRight, Star, Sparkles, Award, User } from "lucide-react"
+import { Trophy, ArrowRight, Sparkles, Award, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { HuntCoverImage } from "@/components/HuntCoverImage"

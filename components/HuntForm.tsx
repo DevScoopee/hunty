@@ -165,6 +165,12 @@ export function HuntForm({ hunt, onUpdate, onRemove, huntId, onCluesSaved }: Hun
             Remove
           </Button>
         </div>
+
+        {errors.clues?.message && (
+          <div role="alert" aria-live="assertive" id="clues-error" className="text-red-500 text-sm mt-2">
+            {errors.clues.message}
+          </div>
+        )}
       </div>
 
       {showPreview && (
@@ -284,13 +290,21 @@ export function HuntForm({ hunt, onUpdate, onRemove, huntId, onCluesSaved }: Hun
                       <Input
                         placeholder="Riddle / Question"
                         aria-label={`Clue ${index + 1} Question`}
+                        aria-describedby={errors.clues?.[index]?.question ? `clue-${index}-question-error` : undefined}
                         {...f}
                         className="pl-3 py-2 text-sm"
                       />
                     )}
                   />
                   {errors.clues?.[index]?.question && (
-                    <span className="text-red-500 text-xs mt-0.5">{errors.clues[index].question.message}</span>
+                    <span
+                      role="alert"
+                      aria-live="assertive"
+                      id={`clue-${index}-question-error`}
+                      className="text-red-500 text-xs mt-0.5"
+                    >
+                      {errors.clues[index].question.message}
+                    </span>
                   )}
                 </div>
                 <div className="w-32 flex flex-col">
@@ -300,15 +314,23 @@ export function HuntForm({ hunt, onUpdate, onRemove, huntId, onCluesSaved }: Hun
                     render={({ field: f }) => (
                       <Input
                         placeholder="Answer (use | for multiple)"
-                        aria-label={`Clue ${index + 1} Answer`}
-                        {...f}
+                          aria-label={`Clue ${index + 1} Answer`}
+                          aria-describedby={errors.clues?.[index]?.answer ? `clue-${index}-answer-error` : undefined}
+                          {...f}
                         className="pl-3 py-2 text-sm"
                       />
                     )}
                   />
-                  {errors.clues?.[index]?.answer && (
-                    <span className="text-red-500 text-xs mt-0.5">{errors.clues[index].answer.message}</span>
-                  )}
+                    {errors.clues?.[index]?.answer && (
+                      <span
+                        role="alert"
+                        aria-live="assertive"
+                        id={`clue-${index}-answer-error`}
+                        className="text-red-500 text-xs mt-0.5"
+                      >
+                        {errors.clues[index].answer.message}
+                      </span>
+                    )}
                 </div>
                 <div className="w-16 flex flex-col">
                   <Controller

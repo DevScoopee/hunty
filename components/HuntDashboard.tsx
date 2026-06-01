@@ -391,6 +391,17 @@ export function HuntDashboard({
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {hunts.map((hunt) => {
+        {hunts.length === 0 ? (
+          <div className="col-span-full rounded-3xl border border-dashed border-slate-300 bg-white/70 px-6 py-14 text-center shadow-sm dark:border-white/10 dark:bg-slate-950/50">
+            <p className="text-lg font-semibold text-slate-900 dark:text-white">
+              No hunts found for this filter
+            </p>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              Try another status or sort option to explore your hunt history.
+            </p>
+          </div>
+        ) : (
+          hunts.map((hunt) => {
             const isDraft = hunt.status === "Draft"
             const isActive = hunt.status === "Active"
             const isCompleted = hunt.status === "Completed"
@@ -496,9 +507,8 @@ export function HuntDashboard({
                 </Link>
               </Card>
             )
-          })}
-        </div>
-      )}
+          })
+        )}
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-500 dark:text-slate-400">

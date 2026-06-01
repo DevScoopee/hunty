@@ -357,7 +357,7 @@ export async function get_clue_info(huntId: number, clueId: number): Promise<Clu
       try {
         localStorage.setItem(`hunt_clue_start_${huntId}_${clue.id}`, Date.now().toString())
       } catch (e) {
-        console.error("Failed to set start time:", e)
+        logger.error("Failed to set start time:", e)
       }
     }
 
@@ -424,7 +424,7 @@ export async function pollTransaction(txHash: string): Promise<boolean> {
       if (e instanceof Error && e.message.includes("Transaction failed")) {
         throw e;
       }
-      console.warn("Polling error:", e);
+      logger.warn("Polling error:", e)
     }
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }

@@ -126,7 +126,7 @@ export default function HuntShare({ hunt }: HuntDetailProps) {
           keepalive: true,
         })
       } catch (error) {
-        console.warn("Hunt view analytics request failed", error)
+        // analytics failure should not affect the user experience
       }
     })()
   }, [hunt.id])

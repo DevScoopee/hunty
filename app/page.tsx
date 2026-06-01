@@ -606,17 +606,17 @@ export default function GameArcade() {
           {!isConnectingWallet ? (
             <div className="space-y-3">
               {walletOptions.length > 0 ? (
-                walletOptions.map((wallet) => (
+                walletOptions.map((_wallet) => (
                   <Button
-                    key={wallet.id}
+                    key={_wallet.id}
                     onClick={() => handleWalletSelect()}
                     className="w-full bg-[#0C0C4F] hover:bg-slate-700 text-white p-4 rounded-lg flex items-center gap-3 justify-start px-6 py-6"
                   >
-                    <span className="text-xl">{wallet.icon}</span>
+                    <span className="text-xl">{_wallet.icon}</span>
                     <div className="text-left">
                       <div className="flex">
-                        <div className="font-medium">{wallet.name}</div>
-                        {wallet.description && <div className="text-sm opacity-80">{wallet.description}</div>}
+                        <div className="font-medium">{_wallet.name}</div>
+                        {_wallet.description && <div className="text-sm opacity-80">{_wallet.description}</div>}
                       </div>
                     </div>
                   </Button>

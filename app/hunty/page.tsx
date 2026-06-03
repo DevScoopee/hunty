@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
 import { logger } from "@/lib/logger"
 import { Suspense, useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -28,7 +27,8 @@ import { RewardsPanel } from "@/components/RewardsPanel"
 import { GamePreview } from "@/components/GamePreview"
 import { PublishModal } from "@/components/PublishModal"
 import ToggleButton from "@/components/ToggleButton"
-import type { HuntDraft, Reward } from "@/lib/types"
+import { COVER_IMAGE_UPLOAD_ERROR_MESSAGE } from "@/lib/ipfs"
+import type { CoverImageUploadState, HuntDraft, Reward } from "@/lib/types"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import { toast } from "sonner"
 import { downloadElementAsImage } from "@/lib/downloadAsImage"
@@ -59,6 +59,7 @@ function CreateGameContent() {
   const [timerEnabled, setTimerEnabled] = useState(false)
   const [isPrivate, setIsPrivate] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false);
+  const [coverImageUploadStates, setCoverImageUploadStates] = useState<Record<number, CoverImageUploadState>>({})
   const [selectedTemplateTitle, setSelectedTemplateTitle] = useState<string | null>(null)
   const previewContainerRef = useRef<HTMLDivElement | null>(null)
   const appliedTemplateRef = useRef<string | null>(null)
@@ -102,6 +103,32 @@ function CreateGameContent() {
   }, [router, searchParams, setGameName, setHunts])
 
   const rewardPool = rewards.reduce((sum, r) => sum + r.amount, 0)
+
+  const setCoverImageUploadState = (huntId: number, state: CoverImageUploadState) => {
+    setCoverImageUploadStates((current) => {
+      if (state === "idle" || state === "succeeded") {
+        const next = { ...current }
+        delete next[huntId]
+        return next
+      }
+
+      return { ...current, [huntId]: state }
+    })
+  }
+
+  const getCoverImageUploadBlockMessage = () => {
+    const states = Object.values(coverImageUploadStates)
+
+    if (states.includes("uploading")) {
+      return "Please wait for the cover image upload to finish before publishing."
+    }
+
+    if (states.includes("failed")) {
+      return COVER_IMAGE_UPLOAD_ERROR_MESSAGE
+    }
+
+    return null
+  }
 
   const huntItemSchema = z.object({
     id: z.number(),
@@ -250,6 +277,11 @@ function CreateGameContent() {
   const removeHunt = (id: number) => {
     if (hunts.length > 1) {
       setHunts(hunts.filter((hunt) => hunt.id !== id));
+      setCoverImageUploadStates((current) => {
+        const next = { ...current }
+        delete next[id]
+        return next
+      })
     }
   };
 
@@ -262,6 +294,12 @@ function CreateGameContent() {
   };
 
   const handlePublish = async (formValues: z.infer<typeof formSchema>) => {
+    const coverImageUploadBlockMessage = getCoverImageUploadBlockMessage()
+    if (coverImageUploadBlockMessage) {
+      toast.error(coverImageUploadBlockMessage)
+      return
+    }
+
     if (!isFormValidated) {
       toast.error("Please fix validation issues before publishing the hunt.")
       return
@@ -434,6 +472,7 @@ function CreateGameContent() {
                             updateHunt(hunt.id, field, value)
                           }
                           onRemove={() => removeHunt(hunt.id)}
+                          onImageUploadStateChange={(state) => setCoverImageUploadState(hunt.id, state)}
                         />
                       ))}
 
@@ -746,6 +785,12 @@ function CreateGameContent() {
                         </Button>
                         <Button
                           onClick={() => {
+                            const coverImageUploadBlockMessage = getCoverImageUploadBlockMessage()
+                            if (coverImageUploadBlockMessage) {
+                              toast.error(coverImageUploadBlockMessage)
+                              return
+                            }
+
                             if (!isFormValidated) {
                               toast.error("Please fill all required hunt details before publishing.")
                               return

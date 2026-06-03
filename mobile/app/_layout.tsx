@@ -4,6 +4,11 @@ import { StyleSheet, View } from 'react-native';
 import { Stack, type ErrorBoundaryProps, useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useFonts } from 'expo-font';
+import * as Notifications from 'expo-notifications';
+import { hideSplashScreen } from '@utils/splashScreenManager';
+import { useTheme } from '@providers/ThemeProvider';
+import { ThemedCustomText, ThemedButton } from '@components/themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { hideSplashScreen, initializeSplashScreen } from '@utils/splashScreenManager';
 import { ThemeProvider, useTheme } from '@providers/ThemeProvider';
@@ -20,6 +25,19 @@ import { Sentry, initializeSentry } from '@config/sentry';
 import { classifyWalletTxError } from '@/lib/walletErrors';
 import { useWalletStore } from '@store/useStore';
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
+export const unstable_settings = {
+  initialRouteName: '(tabs)',
+};
 initializeSplashScreen();
 initializeSentry();
 
@@ -88,6 +106,14 @@ function RootLayoutNav() {
   }, [fontsLoaded, fontError]);
 
   useEffect(() => {
+    Notifications.requestPermissionsAsync();
+  }, []);
+
+  useEffect(() => {
+    const backAction = () => {
+      if (router.canGoBack()) {
+        router.back();
+        return true;
     if (!fontsLoaded && !fontError) return;
 
     let isMounted = true;

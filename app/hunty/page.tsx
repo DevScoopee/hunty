@@ -47,6 +47,7 @@ function CreateGameContent() {
   const [activeTab, setActiveTab] = useState<"create" | "rewards" | "publish" | "leaderboard">("create")
   const [hunts, setHunts] = useLocalStorage<HuntDraft[]>("draft-hunts", [EMPTY_HUNT_DRAFT])
   const [rewards, setRewards] = useLocalStorage<Reward[]>("draft-rewards", []);
+  const [rewardType, setRewardType] = useLocalStorage<"XLM" | "NFT" | "Both">("draft-rewardType", "XLM");
   const [gameName, setGameName] = useLocalStorage("draft-gameName", "Hunty")
   const [startDate, setStartDate] = useLocalStorage("draft-startDate", "")
   const [endDate, setEndDate] = useLocalStorage("draft-endDate", "")
@@ -126,6 +127,7 @@ function CreateGameContent() {
       emailNotifications: z.boolean(),
       timerEnabled: z.boolean(),
       isPrivate: z.boolean(),
+      rewardType: z.enum(["XLM", "NFT", "Both"] as const),
       hunts: z.array(huntItemSchema).min(3, "At least 3 clues are required."),
       rewards: z.array(rewardItemSchema).min(1, "At least one reward slot is required."),
     })
@@ -178,6 +180,7 @@ function CreateGameContent() {
       emailNotifications,
       timerEnabled,
       isPrivate,
+      rewardType,
       hunts,
       rewards,
     },
@@ -191,6 +194,7 @@ function CreateGameContent() {
     setValue("emailNotifications", emailNotifications)
     setValue("timerEnabled", timerEnabled)
     setValue("isPrivate", isPrivate)
+    setValue("rewardType", rewardType)
     setValue("hunts", hunts)
     setValue("rewards", rewards)
     void trigger()
@@ -202,6 +206,7 @@ function CreateGameContent() {
     emailNotifications,
     timerEnabled,
     isPrivate,
+    rewardType,
     hunts,
     rewards,
     rewardPool,
@@ -300,7 +305,7 @@ function CreateGameContent() {
         description,
         cluesCount: formValues.hunts.length,
         status: "Draft",
-        rewardType: formValues.rewards.length > 1 ? "Both" : "XLM",
+        rewardType: formValues.rewardType,
         rewardPool,
         playerCount: 0,
         createdAt: Math.floor(Date.now() / 1000),
@@ -465,8 +470,34 @@ function CreateGameContent() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="space-y-6"
                     >
+                      <div className="space-y-3">
+                        <label className="block text-lg font-semibold text-slate-900 dark:text-slate-100">
+                          Reward Type
+                        </label>
+                        <div className="grid grid-cols-3 gap-3">
+                          {(["XLM", "NFT", "Both"] as const).map((type) => (
+                            <button
+                              key={type}
+                              onClick={() => setRewardType(type)}
+                              className={`px-4 py-3 rounded-lg font-semibold transition-all ${
+                                rewardType === type
+                                  ? type === "XLM"
+                                    ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-2 border-green-500"
+                                    : type === "NFT"
+                                    ? "bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 border-2 border-purple-500"
+                                    : "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-2 border-amber-500"
+                                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-2 border-transparent"
+                              }`}
+                            >
+                              {type}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
                       <RewardsPanel
                         rewards={rewards}
+                        rewardType={rewardType}
                         onUpdateReward={updateReward}
                         onAddReward={addReward}
                         onDeleteReward={deleteReward}
